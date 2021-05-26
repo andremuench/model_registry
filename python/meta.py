@@ -10,5 +10,6 @@ class ModelRelease(Base):
 
     model_id = Column(String(50), primary_key=True)
     version = Column(String(50), primary_key=True)
+    artifact_path = Column(String(1000), nullable=True)
     go_live_on = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=False)
