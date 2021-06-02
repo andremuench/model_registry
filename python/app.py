@@ -49,7 +49,7 @@ async def get_model_release(
     raise HTTPException(status_code=404, detail="No such model")
 
 @app.get("/model/find", responses={200: {"model": List[ModelReleaseSchema]}})
-async def get_model_release(
+async def find_model_release(
     name: str, version: Optional[str]=None, session: Session = Depends(get_db)
 ):
     models = db.find(session, name=name, version=version)
