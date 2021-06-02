@@ -1,6 +1,6 @@
 from model import ModelInput, ModelReleaseSchema, ModelVersion
 from fastapi import FastAPI, HTTPException, Depends
-from typing import List
+from typing import List, Optional
 from db_store import (
     DatabaseStore,
     ModelExistsError,
@@ -46,6 +46,15 @@ async def get_model_release(
     m = db.find_unique(session, name=name, version=version)
     if m:
         return m
+    raise HTTPException(status_code=404, detail="No such model")
+
+@app.get("/model/find", responses={200: {"model": List[ModelReleaseSchema]}})
+async def get_model_release(
+    name: str, version: Optional[str]=None, session: Session = Depends(get_db)
+):
+    models = db.find(session, name=name, version=version)
+    if models:
+        return [ModelReleaseSchema.from_orm(m) for m in models]
     raise HTTPException(status_code=404, detail="No such model")
 
 

@@ -54,6 +54,13 @@ class DatabaseStore:
             .first()
         )
 
+    def find(self, db:Session, name: str, version: str=None):
+        logging.info(f"Searching model with name: {name} and version: {version}")
+        q = db.query(ModelRelease).filter(ModelRelease.model_id == name)
+        if version:
+            q = q.filter(ModelRelease.version == version)
+        return q.all()
+
     def find_current(self, db: Session, name: str):
         curr = (
             db.query(ModelRelease)
