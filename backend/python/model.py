@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from pydantic_sqlalchemy import sqlalchemy_to_pydantic
 from meta import ModelRelease
-from typing import Optional
+from typing import Optional, List
 import os
 
 ARTIFACT_DEFAULT_BASE_PATH = os.environ.get("ARTIFACT_BASE_PATH", "/models").rstrip("/")
@@ -9,9 +9,10 @@ ARTIFACT_DEFAULT_BASE_PATH = os.environ.get("ARTIFACT_BASE_PATH", "/models").rst
 class ModelVersion(BaseModel):
     version: str
 
-
-class ModelInput(ModelVersion):
+class ModelId(BaseModel):
     model_id: str
+
+class ModelInput(ModelVersion, ModelId):
     artifact_path: Optional[str] 
 
     @property
@@ -22,3 +23,4 @@ class ModelInput(ModelVersion):
         return ModelRelease(model_id=self.model_id, version=self.version, artifact_path=self.safe_artifact_path)
 
 ModelReleaseSchema = sqlalchemy_to_pydantic(ModelRelease)
+

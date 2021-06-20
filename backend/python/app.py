@@ -1,4 +1,4 @@
-from model import ModelInput, ModelReleaseSchema, ModelVersion
+from model import ModelInput, ModelReleaseSchema, ModelVersion, ModelId
 from fastapi import FastAPI, HTTPException, Depends
 from typing import List, Optional
 from db_store import (
@@ -8,6 +8,7 @@ from db_store import (
     engine,
     NotFoundError as DbNotFoundError,
 )
+import os
 import urllib.parse
 from meta import ModelRelease, Base
 from sqlalchemy.orm import Session
@@ -19,6 +20,20 @@ app = FastAPI(
     version="0.1",
 )
 db = DatabaseStore()
+
+if os.environ.get("DEV_MODE"):
+    from fastapi.middleware.cors import CORSMiddleware
+    origins = [
+    "http://localhost:8001",
+    ]
+    
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Create Database Structure
 logging.info("Create Database structure")
@@ -57,6 +72,12 @@ async def find_model_release(
         return [ModelReleaseSchema.from_orm(m) for m in models]
     raise HTTPException(status_code=404, detail="No such model")
 
+@app.get("/model/ids", responses={200: {"model": List[ModelId]}})
+async def all_model_ids(
+    session: Session = Depends(get_db)
+):
+    model_ids = db.all_model_ids(session)
+    return [ModelId(model_id=m[0]) for m in model_ids]
 
 @app.get("/models", responses={200: {"model": List[ModelReleaseSchema]}})
 async def all_model_releases(session: Session = Depends(get_db)):

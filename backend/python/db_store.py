@@ -38,6 +38,9 @@ class DatabaseStore:
     def all(self, db: Session):
         return db.query(ModelRelease).all()
 
+    def all_model_ids(self, db:Session):
+        return db.query(ModelRelease.model_id).distinct().all()
+
     def insert(self, db: Session, release: ModelRelease):
         try:
             db.add(release)
