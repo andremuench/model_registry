@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+    fe:
+        image: model_ui:0.1
+        ports:
+            - "80:80"
+        depends_on: 
+            be:
+                condition:
+                    service_started
+        links: 
+            - be
+    be:
+        image: model_registry_api:0.1.1
+        environment: 
+            - DATABASE_HOST=db
+            - DATABASE_USER=sa
+            - DATABASE_PASSWD=${DATABASE_PASSWD}
+            - DATABASE_NAME=local
+        depends_on:
+            util:
+                condition: service_completed_successfully
+        links:
+            - db
+    util:
+        image: mcr.microsoft.com/mssql-tools
+        command: "/opt/mssql-tools/bin/sqlcmd -S db -U sa -P ${DATABASE_PASSWD} -Q \"CREATE DATABASE local\""
+        links:
+            - db
+        depends_on:
+            db:
+                condition: service_healthy
+    db:
+        image: mcr.microsoft.com/mssql/server:2017-latest
+        environment: 
+            - ACCEPT_EULA=Y
+            - SA_PASSWORD=${DATABASE_PASSWD}
+        healthcheck:
+            test: "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${DATABASE_PASSWD} -Q \"SELECT 1\" || exit 1"
